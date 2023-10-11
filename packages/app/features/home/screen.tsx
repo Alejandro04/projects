@@ -1,98 +1,65 @@
 import {
-  Anchor,
-  Button,
-  H1,
   Paragraph,
-  Separator,
-  Sheet,
-  useToastController,
   XStack,
   YStack,
+  ZStack,
+  Text,
+  Card,
+  H1,
+  H2,
+  Image,
+  Heading,
+
 } from '@my/ui'
-import { ChevronDown, ChevronUp } from '@tamagui/lucide-icons'
-import React, { useState } from 'react'
-import { useLink } from 'solito/link'
+import React, { useState, useEffect, useRef } from 'react';
 
 export function HomeScreen() {
-  const linkProps = useLink({
-    href: '/user/nate',
-  })
 
   return (
     <YStack f={1} jc="center" ai="center" p="$4" space>
-      <YStack space="$4" maw={600}>
-        <H1 ta="center">Welcome to Tamagui.</H1>
-        <Paragraph ta="center">
-          Here's a basic starter to show navigating from one screen to another. This screen uses the
-          same code on Next.js and React Native.
-        </Paragraph>
-
-        <Separator />
-        <Paragraph ta="center">
-          Made by{' '}
-          <Anchor color="$color12" href="https://twitter.com/natebirdman" target="_blank">
-            @natebirdman
-          </Anchor>
-          ,{' '}
-          <Anchor
-            color="$color12"
-            href="https://github.com/tamagui/tamagui"
-            target="_blank"
-            rel="noreferrer"
-          >
-            give it a ⭐️
-          </Anchor>
-        </Paragraph>
+      <H1>Rick and Morty API fetch</H1>
+      <H2>Characters</H2>
+      <Characters />
       </YStack>
-
-      <XStack>
-        <Button {...linkProps}>Link to user</Button>
-      </XStack>
-
-      <SheetDemo />
-    </YStack>
   )
 }
 
-function SheetDemo() {
-  const [open, setOpen] = useState(false)
-  const [position, setPosition] = useState(0)
-  const toast = useToastController()
+export function Characters() {
 
-  return (
-    <>
-      <Button
-        size="$6"
-        icon={open ? ChevronDown : ChevronUp}
-        circular
-        onPress={() => setOpen((x) => !x)}
-      />
-      <Sheet
-        modal
-        animation="lazy"
-        open={open}
-        onOpenChange={setOpen}
-        snapPoints={[80]}
-        position={position}
-        onPositionChange={setPosition}
-        dismissOnSnapToBottom
-      >
-        <Sheet.Overlay animation="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
-        <Sheet.Frame ai="center" jc="center">
-          <Sheet.Handle />
-          <Button
-            size="$6"
-            circular
-            icon={ChevronDown}
-            onPress={() => {
-              setOpen(false)
-              toast.show('Sheet closed!', {
-                message: 'Just showing how toast works...',
-              })
-            }}
-          />
-        </Sheet.Frame>
-      </Sheet>
-    </>
-  )
+  const [result, setResult] = useState([]);
+  let originalChars = useRef(result);
+
+  const fetchCharacters = () => {
+    fetch('https://rickandmortyapi.com/api/character')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data)
+        setResult(data.results);
+        originalChars.current = data.results;
+      });
+  };
+
+  useEffect(() => {
+    fetchCharacters();
+  }, []);
+
+const showCharacters = (characters) => {
+  return characters.map((char, index) => (
+    <Card space p='$4'ai='center' key={index}>
+      <Card.Header>
+        <H2>{char.name}</H2>
+        <Text>Status: {char.status}</Text>
+      </Card.Header>
+      <Card.Footer space p='$4' ai='center'>
+        <img src={char.image} alt={char.name} />
+      </Card.Footer>
+    </Card>
+  ));
+};
+
+return (
+  <XStack space>
+          <Text space>{showCharacters(result)}</Text>
+    </XStack>
+)
 }
