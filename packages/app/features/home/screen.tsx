@@ -30,7 +30,7 @@ export function Characters() {
   let originalChars = useRef(result);
 
   useEffect(() => {
-    const data = window.localStorage.getItem('char_load');
+    const data = localStorage.getItem('char_load');
 
     if (data) {
       // If data exists in localStorage, use it
@@ -42,7 +42,7 @@ export function Characters() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem('char_load', JSON.stringify(result))
+    localStorage.setItem('char_load', JSON.stringify(result))
   }, [result])
 
   const fetchCharacters = () => {
