@@ -1,76 +1,67 @@
+import React from 'react';
+import axios from 'axios';
+import { useQuery, QueryClient, QueryClientProvider } from 'react-query';
 import {
-  Paragraph,
-  XStack,
   YStack,
-  ZStack,
   Text,
   Card,
   H1,
   H2,
   H6,
-  Image,
-  Heading,
-} from '@my/ui'
-import React, { useState, useEffect, useRef } from 'react';
+} from '@my/ui';
+
+const fetchCharacters = async () => {
+  try {
+    const response = await axios.get('https://rickandmortyapi.com/api/character');
+    return response.data.results;
+  } catch (error) {
+    throw new Error('Error fetching data');
+  }
+};
+
 
 export function HomeScreen() {
 
   return (
+    <QueryClientProvider client={queryClient}>
     <YStack f={1} jc="center" ai="center" p="$4">
       <H1>Rick and Morty API fetch</H1>
       <H2>Characters</H2>
       <Characters />
     </YStack>
+    </QueryClientProvider>
   )
 }
+const queryClient = new QueryClient();
 
 export function Characters() {
+  const { data, isLoading, isError } = useQuery('characters', fetchCharacters);
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  const [result, setResult] = useState([]);
-  let originalChars = useRef(result);
+  if (isError) {
+    return <div>Error fetching data</div>;
+  }
 
-  useEffect(() => {
-    const data = localStorage.getItem('char_load');
-
-    if (data) {
-      // If data exists in localStorage, use it
-      setResult(JSON.parse(data));
-    } else {
-      // If no data in localStorage, fetch from API
-      fetchCharacters();
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('char_load', JSON.stringify(result))
-  }, [result])
-
-  const fetchCharacters = () => {
-    fetch('https://rickandmortyapi.com/api/character')
-      .then((res) => res.json())
-      .then((data) => {
-        setResult(data.results);
-        originalChars.current = data.results;
-      });
-  };
-
-  const showCharacters = (characters) => {
-    return characters.map((char, index) => (
-      <Card key={index} f={1} m='8px'>
+  const CharactersList = data.map((char, index) => (
+      <YStack key={index} f={1} m='8px'>
+        <Card>
         <Card.Header>
-          <H2>{char.name}</H2>
-          <H6>Status: {char.status}</H6>
+          <H2 ai="center" space>{char.name}</H2>
+          <H6 ai="center">Status: {char.status}</H6>
         </Card.Header>
         <Card.Footer space p='$4' ai='center'>
           <img src={char.image} alt={char.name} />
         </Card.Footer>
       </Card>
+      </YStack>
     ));
-  };
 
-  return (
-    <Text dsp='flex' fw='wrap' jc='space-between' >
-      {showCharacters(result)}
-    </Text>
-  )
-}
+return (
+<Text>
+        {CharactersList}
+      </Text>
+)
+};
